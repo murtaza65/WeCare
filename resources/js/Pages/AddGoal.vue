@@ -63,6 +63,7 @@
 
 <script>
 import TopNav from "./TopNav.vue";
+import axios from "axios";
 
 export default {
   components: { TopNav },
@@ -78,13 +79,18 @@ export default {
     };
   },
   methods: {
-    addGoal() {
-      // Add the new goal to the goals list (here we could make an API call)
-      this.$emit("goalAdded", this.newGoal); // Emit the new goal to parent component
-      this.$router.push("/goals-progress"); // Navigate back to Goals & Progress page
+    async addGoal() {
+      // Send the new goal to the backend via POST request
+      try {
+        const response = await axios.post("/api/goals", this.newGoal);
+        // Redirect to the Goals & Progress page after successful creation
+        window.location.href("/goals-progress");
+      } catch (error) {
+        console.error("Error adding goal:", error);
+      }
     },
     cancel() {
-      this.$router.push("/goals-progress"); // Navigate back to Goals & Progress page
+      window.location.href("/goals-progress"); // Navigate back to Goals & Progress page without submitting
     },
   },
 };

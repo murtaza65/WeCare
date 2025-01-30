@@ -78,44 +78,7 @@ export default {
   name: "GoalsProgress",
   data() {
     return {
-      goals: [
-        {
-          name: "Daily Meditation",
-          progress: 75,
-          icon: "fas fa-spa",
-          liked: false,
-          comments: [],
-          newComment: "",
-          showComments: false,
-        },
-        {
-          name: "Exercise Routine",
-          progress: 60,
-          icon: "fas fa-dumbbell",
-          liked: false,
-          comments: [],
-          newComment: "",
-          showComments: false,
-        },
-        {
-          name: "Healthy Eating",
-          progress: 40,
-          icon: "fas fa-apple-alt",
-          liked: false,
-          comments: [],
-          newComment: "",
-          showComments: false,
-        },
-        {
-          name: "Reading Books",
-          progress: 90,
-          icon: "fas fa-book",
-          liked: false,
-          comments: [],
-          newComment: "",
-          showComments: false,
-        },
-      ],
+      goals: [],
     };
   },
   methods: {
@@ -125,19 +88,38 @@ export default {
     goalLeft(index) {
       this.goals[index].hovered = false;
     },
-    toggleLike(index) {
+    async toggleLike(index) {
       this.goals[index].liked = !this.goals[index].liked;
-    },
-    deleteGoal(index) {
-      this.goals.splice(index, 1);
-    },
-    addComment(index) {
-      if (this.goals[index].newComment.trim()) {
-        this.goals[index].comments.push(this.goals[index].newComment);
-        this.goals[index].newComment = "";
+      try {
+        await axios.put(`/api/goals/${this.goals[index].id}`, {
+          liked: this.goals[index].liked,
+        });
+      } catch (error) {
+        console.error("Error toggling like:", error);
       }
     },
-    addNewGoal() {
+    async deleteGoal(index) {
+      const goalId = this.goals[index].id;
+      try {
+        await axios.delete(`/api/goals/${goalId}`);
+        this.goals.splice(index, 1);
+      } catch (error) {
+        console.error("Error deleting goal:", error);
+      }
+    },
+    async addComment(index) {
+      if (this.goals[index].newComment.trim()) {
+        this.goals[index].comments.push(this.goals[index].newComment);
+        const updatedGoal = { comments: this.goals[index].comments };
+        try {
+          await axios.put(`/api/goals/${this.goals[index].id}`, updatedGoal);
+          this.goals[index].newComment = ""; // Clear input after adding comment
+        } catch (error) {
+          console.error("Error adding comment:", error);
+        }
+      }
+    },
+    async addNewGoal() {
       const newGoal = {
         name: "New Goal",
         progress: 0,
@@ -147,22 +129,43 @@ export default {
         newComment: "",
         showComments: false,
       };
-      this.goals.push(newGoal);
+      try {
+        const response = await axios.post("/api/goals", newGoal);
+        this.goals.push(response.data); // Add newly created goal to the list
+      } catch (error) {
+        console.error("Error adding new goal:", error);
+      }
     },
-  },
-  mounted() {
-    this.randomProgressUpdate();
-  },
-  methods: {
     randomProgressUpdate() {
       setInterval(() => {
         this.goals.forEach((goal) => {
           if (goal.progress < 100) {
             goal.progress = Math.min(100, goal.progress + Math.floor(Math.random() * 10));
+            // Optionally update the backend with progress
+            this.updateGoalProgress(goal);
           }
         });
       }, 2000); // Updates every 2 seconds
     },
+    async updateGoalProgress(goal) {
+      try {
+        await axios.put(`/api/goals/${goal.id}`, { progress: goal.progress });
+      } catch (error) {
+        console.error("Error updating progress:", error);
+      }
+    },
+    async fetchGoals() {
+      try {
+        const response = await axios.get("/api/goals");
+        this.goals = response.data;
+      } catch (error) {
+        console.error("Error fetching goals:", error);
+      }
+    },
+  },
+  mounted() {
+    this.fetchGoals(); // Fetch goals from backend when the component mounts
+    this.randomProgressUpdate(); // Start the random progress updates
   },
 };
 </script>
