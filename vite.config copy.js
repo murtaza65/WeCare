@@ -6,7 +6,7 @@ import fs from 'fs';
 export default defineConfig({
     plugins: [
         laravel({
-            input: 'resources/js/app.js',
+            input: '/workspaces/WeCare/resources/js/app.js',
             refresh: true,
         }),
         vue({
@@ -19,19 +19,8 @@ export default defineConfig({
         }),
     ],
     server: {
-        // port:9000,
-         host: 'refactored-eureka-wqj94gwpjjxc5p69-5173.app.github.dev/workspaces/WeCare',
-        // strictPort: true,
-        cors: {
-            origin: [  
-              "*"
-            ], 
-        },
-        https:true,
-        
-        hmr: {
-            host: 'refactored-eureka-wqj94gwpjjxc5p69.github.dev/workspaces/WeCare',
-        },
+        port: 9000,
+        strictPort: true,
+        https: true, // Enable HTTPS
     },
-    
 });
